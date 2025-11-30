@@ -4,9 +4,11 @@
   "type": "module",
   "license": "MIT",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host",
     "build": "vite build",
-    "start": "serve -s dist -l $PORT"
+    "preview": "vite preview",
+    "check": "tsc",
+    "db:push": "drizzle-kit push"
   },
   "dependencies": {
     "serve": "^14.2.5", 

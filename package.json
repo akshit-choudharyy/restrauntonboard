@@ -7,7 +7,7 @@
     
   "dev": "vite --host",
   "build": "vite build",
-  "preview": "vite preview",
+  "preview": "vite preview --host",
   "check": "tsc",
   "db:push": "drizzle-kit push",
   "start": "serve -s dist"

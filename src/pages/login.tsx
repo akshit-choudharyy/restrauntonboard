@@ -32,7 +32,7 @@ export default function Login() {
     }
   }, [showOTP]);
 
-  const handleSendOTP = async () => {
+const handleSendOTP = async () => {
     if (phone.length !== 10) {
       toast({
         title: "Invalid phone number",
@@ -41,9 +41,17 @@ export default function Login() {
       });
       return;
     }
-    const res = await axiosInstance.post("/send-otp", { "mobile": phone });
-    console.log(res?.data?.data?.otp);
 
+    // --- BYPASS: Comment out the API call ---
+    // const res = await axiosInstance.post("/send-otp", { "mobile": phone });
+    // console.log(res?.data?.data?.otp);
+
+    // --- Simulate Success ---
+    toast({
+      title: "Testing Mode",
+      description: "OTP sending skipped. Please use '1234' to verify."
+    });
+    
     setShowOTP(true);
     setTimeLeft(120);
   };
@@ -79,26 +87,26 @@ export default function Login() {
   };
 
   const handleVerifyOTP = async (otp: string) => {
-    const res = await axiosInstance.post(`/verify-otp`, { "mobile": phone, otp });
-    console.log(res?.data);
+    // --- BYPASS: Comment out the backend verification ---
+    // const res = await axiosInstance.post(`/verify-otp`, { "mobile": phone, otp });
 
-    if (res?.data?.status) {
+    // --- HARDCODED CHECK ---
+    if (otp === "1234") {
       toast({
         title: "Success",
-        description: "OTP verified successfully"
+        description: "OTP verified successfully (Testing)"
       });
-      if (res?.data?.data?.rows[0]?.mobile) {
-        dispatch(setUser(res?.data?.data?.rows[0]));
-      }
-      else {
-        dispatch(setUser({ "mobile": phone }))
-      }
+
+      // Since we skipped the API, we don't have database rows.
+      // We manually set the user with just the phone number.
+      dispatch(setUser({ "mobile": phone }));
+      
       navigate('/register');
     }
     else {
       toast({
         title: "Invalid OTP",
-        description: "Please enter the correct OTP",
+        description: "For testing, please use 1234",
         variant: "destructive"
       });
       seterror("Invalid Otp or expired!")

@@ -100,7 +100,7 @@ const capitalizeWords = (str: string) => {
 export default function AddDish({ open, onClose, outlet_id }: CreateItemProps) {
   const [formState, setFormState] = useState<FormState>({
     item_name: '',
-    base_price: '', // Initialize as empty to allow placeholder
+    base_price: '', 
     vendor_price: '',
     status: 1, // Default to Active
     outlet_id: outlet_id,
@@ -186,28 +186,26 @@ export default function AddDish({ open, onClose, outlet_id }: CreateItemProps) {
     reader.readAsDataURL(file);
   };
 
-  const handleCreateItem = async () => {
-    if (!formState.item_name || formState.vendor_price === '' || formState.base_price === '') {
-      alert('Please fill in Item Name, Vendor Price, and Base Price');
-      return;
-    }
-
-    // Validation: Vendor Price should not exceed Base Price
-    if (Number(formState.vendor_price) > Number(formState.base_price)) {
-      alert('Vendor Price (Selling Price) cannot be higher than Base Price (MRP)');
+const handleCreateItem = async () => {
+    // Validation: Removed base_price check
+    if (!formState.item_name || formState.vendor_price === '') {
+      alert('Please fill in Item Name and Vendor Price');
       return;
     }
 
     setSubmitting(true);
     try {
+      // Destructure to remove base_price (as per previous request)
+      // We keep 'tax' in restOfData, but we will override it below anyway
+      const { base_price, ...restOfData } = formState;
+
       const payload = {
-        ...formState,
+        ...restOfData,
         outlet_id: outlet_id,
-        // Ensure numbers are sent as numbers
         vendor_price: Number(formState.vendor_price),
-        base_price: Number(formState.base_price),
-        // Handle null image case
-        image: formState.image || "NULL"
+        image: formState.image || "NULL",
+        // FORCE TAX TO BE 0 HERE
+        tax: 0 
       };
       
       const response = await axiosInstance.post('/dish', payload);
@@ -332,7 +330,7 @@ export default function AddDish({ open, onClose, outlet_id }: CreateItemProps) {
             <Grid item xs={12}>
               <Typography variant="subtitle2" sx={{ mb: 2, color: 'text.secondary', fontWeight: 600 }}>PRICING DETAILS</Typography>
               <Grid container spacing={2}>
-                <Grid item xs={12} md={4}>
+                {/* <Grid item xs={12} md={4}>
                   <TextField 
                     fullWidth 
                     label="Base Price (MRP)" 
@@ -345,7 +343,7 @@ export default function AddDish({ open, onClose, outlet_id }: CreateItemProps) {
                       startAdornment: <InputAdornment position="start"><CurrencyRupee fontSize="small" /></InputAdornment>,
                     }}
                   />
-                </Grid>
+                </Grid> */}
                 <Grid item xs={12} md={4}>
                   <TextField 
                     fullWidth 
@@ -355,13 +353,13 @@ export default function AddDish({ open, onClose, outlet_id }: CreateItemProps) {
                     value={formState.vendor_price} 
                     onChange={handleChange} 
                     required
-                    helperText={formState.tax > 0 ? `Includes ₹${formState.tax} Tax (5%)` : "Auto-calculates tax"}
+                    // helperText={formState.tax > 0 ? `Includes ₹${formState.tax} Tax (5%)` : "Auto-calculates tax"}
                     InputProps={{
                       startAdornment: <InputAdornment position="start"><CurrencyRupee fontSize="small" /></InputAdornment>,
                     }}
                   />
                 </Grid>
-                <Grid item xs={12} md={4}>
+                {/* <Grid item xs={12} md={4}>
                   <TextField 
                     fullWidth 
                     label="Calculated Tax" 
@@ -371,7 +369,7 @@ export default function AddDish({ open, onClose, outlet_id }: CreateItemProps) {
                       startAdornment: <InputAdornment position="start"><CurrencyRupee fontSize="small" /></InputAdornment>,
                     }}
                   />
-                </Grid>
+                </Grid> */}
               </Grid>
             </Grid>
 

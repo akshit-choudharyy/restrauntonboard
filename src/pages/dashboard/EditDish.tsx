@@ -194,10 +194,10 @@ const EditDish: React.FC<EditDishProps> = ({ open, onClose, item, onSuccess }) =
     }
     
     // Validation: Vendor Price cannot exceed Base Price
-    if (vPrice > bPrice) {
-      setError(`Selling Price (₹${vPrice}) cannot be greater than MRP (₹${bPrice})`);
-      return false;
-    }
+    // if (vPrice > bPrice) {
+    //   setError(`Selling Price (₹${vPrice}) cannot be greater than MRP (₹${bPrice})`);
+    //   return false;
+    // }
 
     if (!formData.cuisine) {
       setError("Cuisine selection is required");
@@ -489,25 +489,25 @@ const EditDish: React.FC<EditDishProps> = ({ open, onClose, item, onSuccess }) =
                     </Tooltip>
                   </Grid>
                   <Grid item xs={12} sm={4}>
-                    <TextField
-                      fullWidth
-                      label="Vendor Price (Selling)"
-                      value={formData.vendor_price}
-                      onChange={(e) => handleInputChange("vendor_price", e.target.value)}
-                      type="number"
-                      required
-                      error={Number(formData.vendor_price) > Number(formData.base_price)}
-                      helperText={Number(formData.vendor_price) > Number(formData.base_price) ? "Cannot exceed MRP" : "Edit Selling Price"}
-                      InputProps={{
-                        startAdornment: <InputAdornment position="start"><CurrencyRupee fontSize="small"/></InputAdornment>
-                      }}
-                    />
+<TextField
+  fullWidth
+  label="Vendor Price (Selling)"
+  value={formData.vendor_price}
+  onChange={(e) => handleInputChange("vendor_price", e.target.value)}
+  type="number"
+  required
+  // Condition removed from helperText
+  helperText="Edit Selling Price" 
+  InputProps={{
+    startAdornment: <InputAdornment position="start"><CurrencyRupee fontSize="small"/></InputAdornment>
+  }}
+/>
                   </Grid>
                   <Grid item xs={12} sm={4}>
                     <TextField
                       fullWidth
-                      label="Tax (5%)"
-                      value={formData.tax}
+                      label="Selling Price"
+                      value={ item ? (Number(item.base_price) + (Number(item.tax))).toFixed(2) : "0.00" }
                       disabled
                       InputProps={{
                         startAdornment: <InputAdornment position="start"><CurrencyRupee fontSize="small"/></InputAdornment>

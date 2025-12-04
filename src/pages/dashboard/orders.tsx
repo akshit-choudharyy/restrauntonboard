@@ -24,7 +24,7 @@ import {
   Badge,
   Paper,
 } from '@mui/material';
-import { AccessTime, Visibility, CheckCircle, LocalShipping, DoneAll, Cancel, Receipt, FileDownload, Close } from '@mui/icons-material';
+import { AccessTime, Visibility, CheckCircle, LocalShipping, DoneAll, Cancel, Receipt, FileDownload, Close, ThumbUp, FiberNew } from '@mui/icons-material';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store/store';
 import DashboardDrawer from '../../components/DashboardDrawer';
@@ -37,13 +37,11 @@ import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 
 // --- Data Interfaces ---
-// (Interfaces like MenuItem, CustomerInfo, DeliveryDetails, Order, etc., remain the same)
-// Define interfaces for our data structure
 interface MenuItem {
     name: string;
     item_id: number;
     quantity: number;
-    descriptiom: string; // Note: this is misspelled in the API response
+    descriptiom: string; 
     SellingPrice: number;
     isVegetarian: boolean;
   }
@@ -96,13 +94,13 @@ interface MenuItem {
     address: string;
     city: string;
     state: string;
-    logo_image?: string; // Add logo_image to order if available
+    logo_image?: string; 
     rlname: string;
     rlphone: string;
     rlemail: string;
     station_name: string;
     station_code: string;
-    del_id?: number; // Delivery person ID if assigned
+    del_id?: number; 
   }
   
   interface DeliveryPerson {
@@ -247,8 +245,10 @@ const ThermalReceipt = React.forwardRef(({ order, totals }: { order: Order; tota
 
 // --- END: Receipt Generation Code ---
 
-// Status mappings and groups remain the same
+// --- UPDATED STATUS TYPES AND GROUPS ---
 const STATUS_TYPES = {
+    ORDER_PLACED: 'Placed',           // <--- ADDED
+    ORDER_CONFIRMED: 'Confirmed',     // <--- ADDED
     ORDER_PREPARING: 'Preparing',
     ORDER_PREPARED: 'Prepared',
     ORDER_OUT_FOR_DELIVERY: 'Out for Delivery',
@@ -259,7 +259,8 @@ const STATUS_TYPES = {
   };
   
   const STATUS_GROUPS = {
-    'Preparing': ['ORDER_PREPARING', 'ORDER_PREPARED'],
+    // Added Placed and Confirmed to this group so they show up in the first tab
+    'Preparing': ['ORDER_PLACED', 'ORDER_CONFIRMED', 'ORDER_PREPARING', 'ORDER_PREPARED'], 
     'Out for Delivery': ['ORDER_OUT_FOR_DELIVERY'],
     'Delivered': ['ORDER_DELIVERED', 'ORDER_PARTIALLY_DELIVERED', 'ORDER_UNDELIVERED', 'ORDER_CANCELLED']
   };
@@ -290,7 +291,6 @@ const Orders: React.FC<Props> = ({ restdata }) => {
   const outletId = useSelector((state: RootState) => state.outlet_id);
   const statusLabels = Object.keys(STATUS_GROUPS);
 
-  // All fetch functions and handlers (fetchOrders, filterOrdersByTab, handleStatusChange, etc.) remain the same
   const fetchOrders = async () => {
     try {
       const res = await axiosInstance.get(`/restraunts/?outlet_id=${outletId?.outlet_id}`);
@@ -502,8 +502,12 @@ const getDeliveryTimeLeft = (deliveryDate: string) => {
         return "Invalid date";
     }
 };
+
+  // --- UPDATED ICON LOGIC ---
   const getStatusIcon = (status: string) => {
     switch(status) {
+      case 'ORDER_PLACED': return <FiberNew fontSize="small" />; // New icon
+      case 'ORDER_CONFIRMED': return <ThumbUp fontSize="small" />; // New icon
       case 'ORDER_PREPARING': return <AccessTime fontSize="small" />;
       case 'ORDER_PREPARED': return <CheckCircle fontSize="small" />;
       case 'ORDER_OUT_FOR_DELIVERY': return <LocalShipping fontSize="small" />;
@@ -612,7 +616,23 @@ const getDeliveryTimeLeft = (deliveryDate: string) => {
       </Dialog>
       <Dialog open={openStatusDialog} onClose={() => setOpenStatusDialog(false)} maxWidth="xs" fullWidth>
         <DialogTitle>Update Order Status</DialogTitle>
-        <DialogContent><FormControl fullWidth sx={{ mt: 2 }}><InputLabel>Status</InputLabel><Select value={newStatus} onChange={(e) => setNewStatus(e.target.value)} label="Status"><MenuItem value="ORDER_PREPARING">Preparing</MenuItem><MenuItem value="ORDER_PREPARED">Prepared</MenuItem><MenuItem value="ORDER_OUT_FOR_DELIVERY">Out for Delivery</MenuItem><MenuItem value="ORDER_DELIVERED">Delivered</MenuItem><MenuItem value="ORDER_PARTIALLY_DELIVERED">Partially Delivered</MenuItem><MenuItem value="ORDER_UNDELIVERED">Undelivered</MenuItem><MenuItem value="ORDER_CANCELLED">Cancelled</MenuItem></Select></FormControl></DialogContent>
+        <DialogContent>
+            <FormControl fullWidth sx={{ mt: 2 }}>
+                <InputLabel>Status</InputLabel>
+                <Select value={newStatus} onChange={(e) => setNewStatus(e.target.value)} label="Status">
+                    {/* ADDED NEW STATUS OPTIONS HERE */}
+                    <MenuItem value="ORDER_PLACED">Placed</MenuItem>
+                    <MenuItem value="ORDER_CONFIRMED">Confirmed</MenuItem>
+                    <MenuItem value="ORDER_PREPARING">Preparing</MenuItem>
+                    <MenuItem value="ORDER_PREPARED">Prepared</MenuItem>
+                    <MenuItem value="ORDER_OUT_FOR_DELIVERY">Out for Delivery</MenuItem>
+                    <MenuItem value="ORDER_DELIVERED">Delivered</MenuItem>
+                    <MenuItem value="ORDER_PARTIALLY_DELIVERED">Partially Delivered</MenuItem>
+                    <MenuItem value="ORDER_UNDELIVERED">Undelivered</MenuItem>
+                    <MenuItem value="ORDER_CANCELLED">Cancelled</MenuItem>
+                </Select>
+            </FormControl>
+        </DialogContent>
         <DialogActions><Button onClick={() => setOpenStatusDialog(false)}>Cancel</Button><Button onClick={() => handleStatusChange(newStatus)} variant="contained" color="primary">Update</Button></DialogActions>
       </Dialog>
       <Dialog open={openDeliveryDialog} onClose={() => setOpenDeliveryDialog(false)} maxWidth="sm" fullWidth>

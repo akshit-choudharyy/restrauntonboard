@@ -63,10 +63,12 @@ interface MenuItemData {
   tax?: number;
 }
 
+// STEP 1: ADD PENDING STATUS HERE
 const STATUS_OPTIONS = [
   { value: 1, label: 'Active', color: '#4caf50' },
   { value: 2, label: 'Closed', color: '#ff9800' },
   { value: 0, label: 'Inactive', color: '#f44336' },
+  // { value: 3, label: 'Pending Approval', color: '#1976d2' },
 ];
 
 const EditDish: React.FC<EditDishProps> = ({ open, onClose, item, onSuccess }) => {
@@ -89,6 +91,9 @@ const EditDish: React.FC<EditDishProps> = ({ open, onClose, item, onSuccess }) =
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // STEP 2: DEFINE IS PENDING
+  const isPending = item?.status === 3; 
   
   const foodTypeOptions = [
     "SNACKS", "BREAKFAST", "STARTERS", "MAINS", "MAINS_GRAVY", "BREADS", "THALI",
@@ -135,12 +140,10 @@ const EditDish: React.FC<EditDishProps> = ({ open, onClose, item, onSuccess }) =
   const handleInputChange = (field: string, value: any) => {
     let processedValue = value;
     
-    // Capitalization for text fields
     if ((field === "item_name" || field === "description") && typeof value === "string") {
       processedValue = capitalizeWords(value);
     }
     
-    // Logic for Price and Tax
     if (field === "vendor_price") {
       const numValue = parseFloat(value) || 0;
       setFormData(prev => ({
@@ -154,7 +157,6 @@ const EditDish: React.FC<EditDishProps> = ({ open, onClose, item, onSuccess }) =
         [field]: processedValue
       }));
     }
-    
     setError("");
   };
 
@@ -192,12 +194,6 @@ const EditDish: React.FC<EditDishProps> = ({ open, onClose, item, onSuccess }) =
       setError("Valid vendor price is required");
       return false;
     }
-    
-    // Validation: Vendor Price cannot exceed Base Price
-    // if (vPrice > bPrice) {
-    //   setError(`Selling Price (₹${vPrice}) cannot be greater than MRP (₹${bPrice})`);
-    //   return false;
-    // }
 
     if (!formData.cuisine) {
       setError("Cuisine selection is required");
@@ -277,7 +273,7 @@ const EditDish: React.FC<EditDishProps> = ({ open, onClose, item, onSuccess }) =
           <Stack direction="row" alignItems="center" spacing={2}>
             <Box
               sx={{
-                backgroundColor: "#EB8041",
+                backgroundColor: isPending ? "#1976d2" : "#EB8041", // Changed color if pending
                 borderRadius: 2,
                 p: 1,
                 display: "flex",
@@ -285,11 +281,11 @@ const EditDish: React.FC<EditDishProps> = ({ open, onClose, item, onSuccess }) =
                 justifyContent: "center"
               }}
             >
-              <Restaurant sx={{ color: "white", fontSize: 24 }} />
+              {isPending ? <Lock sx={{ color: "white", fontSize: 24 }} /> : <Restaurant sx={{ color: "white", fontSize: 24 }} />}
             </Box>
             <Box>
               <Typography variant="h6" fontWeight={700} color="text.primary">
-                Edit Menu Item
+                {isPending ? "View Item (Read Only)" : "Edit Menu Item"}
               </Typography>
               <Typography variant="caption" color="text.secondary">
                 ID: {item?.item_id}
@@ -304,16 +300,23 @@ const EditDish: React.FC<EditDishProps> = ({ open, onClose, item, onSuccess }) =
 
       <DialogContent sx={{ p: 0 }}>
         <Stack spacing={2} sx={{ p: 3 }}>
+          
+          {/* STEP 3: SHOW ALERT IF PENDING */}
+          {isPending && (
+             <Alert severity="info" variant="filled" icon={<Lock />} sx={{ borderRadius: 2 }}>
+                This item is currently <strong>Pending Approval</strong>. You cannot edit details until an Admin approves it.
+             </Alert>
+          )}
+
           {error && (
             <Alert severity="error" sx={{ borderRadius: 2 }}>{error}</Alert>
           )}
 
           <Grid container spacing={3}>
             
-            {/* Left Column: Image & Status */}
+            {/* Left Column */}
             <Grid item xs={12} md={4}>
               <Stack spacing={3}>
-                {/* Image Card */}
                 <Paper sx={{ p: 3, borderRadius: 3, textAlign: 'center', bgcolor: 'white' }}>
                   <Typography variant="subtitle2" fontWeight={600} gutterBottom align="left">
                     Dish Image
@@ -327,7 +330,8 @@ const EditDish: React.FC<EditDishProps> = ({ open, onClose, item, onSuccess }) =
                         height: 140,
                         mx: 'auto',
                         boxShadow: 2,
-                        border: '1px solid #eee'
+                        border: '1px solid #eee',
+                        opacity: isPending ? 0.7 : 1 // Dim image if pending
                       }}
                     >
                       <Restaurant fontSize="large" sx={{ opacity: 0.5 }} />
@@ -339,6 +343,7 @@ const EditDish: React.FC<EditDishProps> = ({ open, onClose, item, onSuccess }) =
                     accept="image/*"
                     hidden
                     onChange={handleImageChange}
+                    disabled={isPending} // STEP 4: DISABLE INPUT
                   />
                   <Button
                     variant="outlined"
@@ -346,12 +351,12 @@ const EditDish: React.FC<EditDishProps> = ({ open, onClose, item, onSuccess }) =
                     onClick={() => fileInputRef.current?.click()}
                     size="small"
                     fullWidth
+                    disabled={isPending} // STEP 4: DISABLE BUTTON
                   >
                     Change Image
                   </Button>
                 </Paper>
 
-                {/* Status Card */}
                 <Paper sx={{ p: 3, borderRadius: 3, bgcolor: 'white' }}>
                   <Typography variant="subtitle2" fontWeight={600} gutterBottom>
                     Item Status
@@ -361,6 +366,7 @@ const EditDish: React.FC<EditDishProps> = ({ open, onClose, item, onSuccess }) =
                     <Select
                       value={formData.status}
                       label="Current Status"
+                      disabled={isPending} // STEP 4: DISABLE SELECT
                       onChange={(e) => handleInputChange("status", Number(e.target.value))}
                     >
                       {STATUS_OPTIONS.map((opt) => (
@@ -376,7 +382,6 @@ const EditDish: React.FC<EditDishProps> = ({ open, onClose, item, onSuccess }) =
 
                   <Divider sx={{ my: 2 }} />
 
-                  {/* Toggles */}
                   <Stack spacing={2}>
                     <Stack direction="row" justifyContent="space-between" alignItems="center">
                       <Typography variant="body2">Vegetarian</Typography>
@@ -385,6 +390,7 @@ const EditDish: React.FC<EditDishProps> = ({ open, onClose, item, onSuccess }) =
                         checked={formData.is_vegeterian === 1}
                         onChange={(e) => handleInputChange("is_vegeterian", e.target.checked ? 1 : 0)}
                         color="success"
+                        disabled={isPending} // STEP 4: DISABLE SWITCH
                       />
                     </Stack>
                     <Stack direction="row" justifyContent="space-between" alignItems="center">
@@ -394,6 +400,7 @@ const EditDish: React.FC<EditDishProps> = ({ open, onClose, item, onSuccess }) =
                         checked={formData.bulk_only === 1}
                         onChange={(e) => handleInputChange("bulk_only", e.target.checked ? 1 : 0)}
                         color="warning"
+                        disabled={isPending} // STEP 4: DISABLE SWITCH
                       />
                     </Stack>
                   </Stack>
@@ -401,7 +408,7 @@ const EditDish: React.FC<EditDishProps> = ({ open, onClose, item, onSuccess }) =
               </Stack>
             </Grid>
 
-            {/* Right Column: Form Fields */}
+            {/* Right Column */}
             <Grid item xs={12} md={8}>
               <Paper sx={{ p: 3, borderRadius: 3, bgcolor: 'white', mb: 3 }}>
                 <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 3 }}>
@@ -419,6 +426,7 @@ const EditDish: React.FC<EditDishProps> = ({ open, onClose, item, onSuccess }) =
                       value={formData.item_name}
                       onChange={(e) => handleInputChange("item_name", e.target.value)}
                       required
+                      disabled={isPending} // STEP 4: DISABLE TEXTFIELD
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>
@@ -428,6 +436,7 @@ const EditDish: React.FC<EditDishProps> = ({ open, onClose, item, onSuccess }) =
                         value={formData.cuisine}
                         onChange={(e) => handleInputChange("cuisine", e.target.value)}
                         label="Cuisine"
+                        disabled={isPending} // STEP 4: DISABLE SELECT
                       >
                         {cuisineOptions.map((opt) => (
                           <MenuItem key={opt} value={opt}>{opt.replace(/_/g, ' ')}</MenuItem>
@@ -442,6 +451,7 @@ const EditDish: React.FC<EditDishProps> = ({ open, onClose, item, onSuccess }) =
                         value={formData.food_type}
                         onChange={(e) => handleInputChange("food_type", e.target.value)}
                         label="Food Type"
+                        disabled={isPending} // STEP 4: DISABLE SELECT
                       >
                         {foodTypeOptions.map((opt) => (
                           <MenuItem key={opt} value={opt}>{opt.replace(/_/g, ' ')}</MenuItem>
@@ -458,6 +468,7 @@ const EditDish: React.FC<EditDishProps> = ({ open, onClose, item, onSuccess }) =
                       multiline
                       rows={2}
                       placeholder="Ingredients, preparation method..."
+                      disabled={isPending} // STEP 4: DISABLE TEXTFIELD
                     />
                   </Grid>
                 </Grid>
@@ -478,7 +489,7 @@ const EditDish: React.FC<EditDishProps> = ({ open, onClose, item, onSuccess }) =
                         fullWidth
                         label="Base Price (MRP)"
                         value={formData.base_price}
-                        disabled // Disabled as requested
+                        disabled // Always disabled
                         type="number"
                         InputProps={{
                           startAdornment: <InputAdornment position="start"><CurrencyRupee fontSize="small"/></InputAdornment>,
@@ -489,24 +500,24 @@ const EditDish: React.FC<EditDishProps> = ({ open, onClose, item, onSuccess }) =
                     </Tooltip>
                   </Grid>
                   <Grid item xs={12} sm={4}>
-<TextField
-  fullWidth
-  label="Vendor Price (Selling)"
-  value={formData.vendor_price}
-  onChange={(e) => handleInputChange("vendor_price", e.target.value)}
-  type="number"
-  required
-  // Condition removed from helperText
-  helperText="Edit Selling Price" 
-  InputProps={{
-    startAdornment: <InputAdornment position="start"><CurrencyRupee fontSize="small"/></InputAdornment>
-  }}
-/>
+                    <TextField
+                      fullWidth
+                      label="Vendor Price (Selling)"
+                      value={formData.vendor_price}
+                      onChange={(e) => handleInputChange("vendor_price", e.target.value)}
+                      type="number"
+                      required
+                      disabled={isPending} // STEP 4: DISABLE TEXTFIELD
+                      helperText="Edit Selling Price" 
+                      InputProps={{
+                        startAdornment: <InputAdornment position="start"><CurrencyRupee fontSize="small"/></InputAdornment>
+                      }}
+                    />
                   </Grid>
                   <Grid item xs={12} sm={4}>
                     <TextField
                       fullWidth
-                      label="Selling Price"
+                      label="Selling Price + Tax"
                       value={ item ? (Number(item.base_price) + (Number(item.tax))).toFixed(2) : "0.00" }
                       disabled
                       InputProps={{
@@ -528,6 +539,7 @@ const EditDish: React.FC<EditDishProps> = ({ open, onClose, item, onSuccess }) =
                       onChange={(e) => handleInputChange("opening_time", e.target.value)}
                       type="time"
                       required
+                      disabled={isPending} // STEP 4: DISABLE TEXTFIELD
                       InputLabelProps={{ shrink: true }}
                       InputProps={{
                         startAdornment: <InputAdornment position="start"><Schedule fontSize="small"/></InputAdornment>
@@ -542,6 +554,7 @@ const EditDish: React.FC<EditDishProps> = ({ open, onClose, item, onSuccess }) =
                       onChange={(e) => handleInputChange("closing_time", e.target.value)}
                       type="time"
                       required
+                      disabled={isPending} // STEP 4: DISABLE TEXTFIELD
                       InputLabelProps={{ shrink: true }}
                       InputProps={{
                         startAdornment: <InputAdornment position="start"><Schedule fontSize="small"/></InputAdornment>
@@ -557,12 +570,13 @@ const EditDish: React.FC<EditDishProps> = ({ open, onClose, item, onSuccess }) =
 
       <DialogActions sx={{ p: 2, borderTop: '1px solid #eee', bgcolor: 'white' }}>
         <Button onClick={handleClose} disabled={loading} color="inherit">
-          Cancel
+          {isPending ? "Close" : "Cancel"}
         </Button>
         <Button
           onClick={handleSubmit}
           variant="contained"
-          disabled={loading}
+          // STEP 5: DISABLE SAVE BUTTON IF PENDING
+          disabled={loading || isPending}
           sx={{
             bgcolor: "#EB8041",
             "&:hover": { bgcolor: "#D26E2F" },

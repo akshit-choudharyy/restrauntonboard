@@ -102,7 +102,7 @@ export default function AddDish({ open, onClose, outlet_id }: CreateItemProps) {
     item_name: '',
     base_price: '', 
     vendor_price: '',
-    status: 1, // Default to Active
+    status: 3, 
     outlet_id: outlet_id,
     description: '',
     opening_time: '09:00',
@@ -290,7 +290,7 @@ const handleCreateItem = async () => {
               />
             </Grid>
             
-            <Grid item xs={12} md={6}>
+            {/* <Grid item xs={12} md={6}>
               <FormControl fullWidth>
                 <InputLabel>Status</InputLabel>
                 <Select
@@ -303,7 +303,7 @@ const handleCreateItem = async () => {
                   ))}
                 </Select>
               </FormControl>
-            </Grid>
+            </Grid> */}
 
             {/* Classification */}
             <Grid item xs={12} md={6}>

@@ -21,7 +21,9 @@ import {
   useTheme,
   useMediaQuery,
   CssBaseline,
-  Container
+  Container,
+  Menu,      
+  MenuItem 
 } from '@mui/material';
 import { 
   Menu as MenuIcon,
@@ -87,6 +89,8 @@ export default function Dashboard() {
   const [restdata, setrestdata] = useState<any>([]);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const openMenu = Boolean(anchorEl);
 
   useEffect(() => {
     const getdata = async() => {
@@ -110,6 +114,25 @@ export default function Dashboard() {
 
   const handleSidebarToggle = () => {
     setSidebarCollapsed(!sidebarCollapsed);
+  };
+
+    const handleProfileClick = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleProfileClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleGoToProfile = () => {
+    handleProfileClose();
+    navigate('/dashboard/profile');
+  };
+
+  const handleLogout = () => {
+    handleProfileClose();
+    localStorage.clear();
+    navigate('/login');
   };
 
   const NavigationItem = ({ item, isSecondary = false }: { item: any, isSecondary?: boolean }) => {
@@ -241,73 +264,188 @@ export default function Dashboard() {
       <CssBaseline />
       
       {/* Top AppBar for Mobile */}
-      {isMobile && (
-        <AppBar
-          position="fixed"
-          sx={{
-            zIndex: theme.zIndex.drawer + 1,
-            bgcolor: 'white',
-            color: '#333',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-          }}
+      {!isMobile && (
+  <AppBar
+    position="fixed"
+    sx={{
+      zIndex: theme.zIndex.drawer + 1,
+      bgcolor: 'white',
+      color: '#333',
+      boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+      ml: sidebarCollapsed ? `${theme.spacing(9)}` : `${drawerWidth}px`,
+      width: sidebarCollapsed ? `calc(100% - ${theme.spacing(9)})` : `calc(100% - ${drawerWidth}px)`,
+      transition: theme.transitions.create(['margin', 'width'], {
+        easing: theme.transitions.easing.easeOut,
+        duration: theme.transitions.duration.enteringScreen,
+      }),
+    }}
+  >
+    <Toolbar sx={{ justifyContent: 'space-between' }}>
+      <Typography variant="h6" sx={{ fontWeight: 600 }}>
+        {currentPath === '/dashboard/menu' ? 'Menu Management' : currentItem?.label || 'Dashboard'}
+      </Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <IconButton color="inherit">
+          <Notifications />
+        </IconButton>
+<IconButton 
+          onClick={handleProfileClick}
+          size="small"
+          sx={{ ml: 2 }}
+          aria-controls={openMenu ? 'account-menu' : undefined}
+          aria-haspopup="true"
+          aria-expanded={openMenu ? 'true' : undefined}
         >
-          <Toolbar>
-            <IconButton
-              color="inherit"
-              aria-label="open drawer"
-              edge="start"
-              onClick={handleDrawerToggle}
-              sx={{ mr: 2 }}
-            >
-              <MenuIcon />
-            </IconButton>
-            <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-              {currentItem?.label || 'Dashboard'}
-            </Typography>
-            <IconButton color="inherit">
-              <Notifications />
-            </IconButton>
-          </Toolbar>
-        </AppBar>
-      )}
+          <Avatar sx={{ width: 32, height: 32, bgcolor: '#E87C4E' }}>
+            <AccountCircle />
+          </Avatar>
+        </IconButton>
+
+        {/* 2. The Dropdown Menu */}
+        <Menu
+          anchorEl={anchorEl}
+          id="account-menu"
+          open={openMenu}
+          onClose={handleProfileClose}
+          onClick={handleProfileClose}
+          PaperProps={{
+            elevation: 0,
+            sx: {
+              overflow: 'visible',
+              filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.32))',
+              mt: 1.5,
+              '& .MuiAvatar-root': { width: 32, height: 32, ml: -0.5, mr: 1 },
+              '&:before': {
+                content: '""',
+                display: 'block',
+                position: 'absolute',
+                top: 0,
+                right: 14,
+                width: 10,
+                height: 10,
+                bgcolor: 'background.paper',
+                transform: 'translateY(-50%) rotate(45deg)',
+                zIndex: 0,
+              },
+            },
+          }}
+          transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+          anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+        >
+          {/* Option 1: Profile */}
+          <MenuItem onClick={handleGoToProfile}>
+            <ListItemIcon>
+              <AccountCircle fontSize="small" />
+            </ListItemIcon>
+            Profile
+          </MenuItem>
+
+          <Divider />
+
+          {/* Option 2: Logout */}
+          <MenuItem onClick={handleLogout}>
+            <ListItemIcon>
+              <Logout fontSize="small" />
+            </ListItemIcon>
+            Logout
+          </MenuItem>
+        </Menu>
+      </Box>
+    </Toolbar>
+  </AppBar>
+)}
 
       {/* Desktop Top Bar */}
-      {!isMobile && (
-        <AppBar
-          position="fixed"
-          sx={{
-            zIndex: theme.zIndex.drawer + 1,
-            bgcolor: 'white',
-            color: '#333',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-            ml: sidebarCollapsed ? `${theme.spacing(9)}` : `${drawerWidth}px`,
-            width: sidebarCollapsed ? `calc(100% - ${theme.spacing(9)})` : `calc(100% - ${drawerWidth}px)`,
-            transition: theme.transitions.create(['margin', 'width'], {
-              easing: theme.transitions.easing.easeOut,
-              duration: theme.transitions.duration.enteringScreen,
-            }),
-          }}
-        >
-          <Toolbar sx={{ justifyContent: 'space-between' }}>
-            <Typography variant="h6" sx={{ fontWeight: 600 }}>
-              {currentItem?.label || 'Dashboard'}
-            </Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <IconButton color="inherit">
-                <Notifications />
+{isMobile && (
+  <AppBar
+    position="fixed"
+    sx={{
+      zIndex: theme.zIndex.drawer + 1,
+      bgcolor: 'white',
+      color: '#333',
+      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+    }}
+  >
+    <Toolbar>
+      <IconButton
+        color="inherit"
+        aria-label="open drawer"
+        edge="start"
+        onClick={handleDrawerToggle}
+        sx={{ mr: 2 }}
+      >
+        <MenuIcon />
+      </IconButton>
+      <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
+        {currentPath === '/dashboard/menu' ? 'Menu Management' : currentItem?.label || 'Dashboard'}
+      </Typography>
+      <IconButton color="inherit">
+                     <IconButton 
+                onClick={handleProfileClick}
+                size="small"
+                sx={{ ml: 2 }}
+                aria-controls={openMenu ? 'account-menu' : undefined}
+                aria-haspopup="true"
+                aria-expanded={openMenu ? 'true' : undefined}
+              >
+                <Avatar sx={{ width: 32, height: 32, bgcolor: '#E87C4E' }}>
+                  <AccountCircle />
+                </Avatar>
               </IconButton>
-              <IconButton onClick={()=>{localStorage.clear(); navigate('/login')}} color="inherit">
-                <Logout />
-              </IconButton>
-              <Link to={'/dashboard/profile'}>
-              <Avatar sx={{ width: 32, height: 32, bgcolor: '#E87C4E' }} >
-                <AccountCircle  />
-              </Avatar>
-              </Link>
-            </Box>
-          </Toolbar>
-        </AppBar>
-      )}
+                            <Menu
+                anchorEl={anchorEl}
+                id="account-menu"
+                open={openMenu}
+                onClose={handleProfileClose}
+                onClick={handleProfileClose}
+                PaperProps={{
+                  elevation: 0,
+                  sx: {
+                    overflow: 'visible',
+                    filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.32))',
+                    mt: 1.5,
+                    '& .MuiAvatar-root': {
+                      width: 32,
+                      height: 32,
+                      ml: -0.5,
+                      mr: 1,
+                    },
+                    '&:before': {
+                      content: '""',
+                      display: 'block',
+                      position: 'absolute',
+                      top: 0,
+                      right: 14,
+                      width: 10,
+                      height: 10,
+                      bgcolor: 'background.paper',
+                      transform: 'translateY(-50%) rotate(45deg)',
+                      zIndex: 0,
+                    },
+                  },
+                }}
+                transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+                anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+              >
+                <MenuItem onClick={handleGoToProfile}>
+                  <ListItemIcon>
+                    <AccountCircle fontSize="small" />
+                  </ListItemIcon>
+                  Profile
+                </MenuItem>
+                <Divider />
+                <MenuItem onClick={handleLogout}>
+                  <ListItemIcon>
+                    <Logout fontSize="small" />
+                  </ListItemIcon>
+                  Logout
+                </MenuItem>
+              </Menu>
+        <Notifications />
+      </IconButton>
+    </Toolbar>
+  </AppBar>
+)}
 
       {/* Navigation Drawer */}
       <Box
